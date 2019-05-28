@@ -30,9 +30,13 @@
 2. [Simple and fast HTML parser DiDom](https://github.com/Imangazaliev/DiDOM)
 
 ## Установка
+- Загрузка:
+```
+$ git clone git@github.com:skodnik/nstgrm_parser_pub.git
+```
 - Установка зависимостей:
 ```
-composer install
+$ composer install
 ```
 - Создать MySQL базу данных. Т.к. используется PDO, база данных может быть иной.
 
@@ -43,37 +47,38 @@ composer install
 ## Инициация
 - Создание таблиц необходимых для работы сервиса:
 ```
-php ./console.php -s
+$ sudo chmod +x bin/console
+$ bin/console -s
 ```
 - Добавление в сервис пользователей по списку из файла `App/users_tracked_init.csv`:
 ```
-php ./console.php -r
+$ bin/console -r
 ```
 - Удаление из сервиса пользователей по списку из файла `App/users_tracked_init.csv`:
 ```
-php ./console.php -с
+$ bin/console -с
 ```
 
 ## Использование
 - Добавление пользователя в севис:
  ```
- php ./console.php -a new_user_name
+$ bin/console -a new_user_name
  ```
 - Обновление данных (добавить в `crontab` с нужной периодичностью) в сервисе свежими данными из Instagram: 
 ```
-php ./console.php -u
+$ bin/console -u
 ```
 - Получить информацию указанного пользователя из Instagram:
 ```
-php ./console.php -i user_name
+$ bin/console -i user_name
 ```
 - Получить информацию указанного пользователя из сервиса (базы данных):
 ```
-php ./console.php -b user_name
+$ bin/console -b user_name
 ```
 - Удалить пользователя из сервиса (установка маркера `is_delete`):
 ```
-php ./console.php -d user_name
+$ bin/console -d user_name
 ```
 Удалить полностью - MySQL: `DELETE FROM users_tracked WHERE username = '';`. Удалится пользователь из таблицы `users_tracked` и связанные с ним строки в других таблицах (используется `ON DELETE CASCADE`).
 
@@ -82,6 +87,8 @@ php ./console.php -d user_name
 
 ### Welcome report
 ```
+$ bin/console
+
 Welcome to Instagram parser! 
 
 initializing:                       -s
@@ -96,6 +103,8 @@ delete user:                        -d some_user_name
 
 ### Instagram info report
 ```
+$ bin/console -i nasa
+
 -----------------------------------
  Public info
 -----------------------------------
