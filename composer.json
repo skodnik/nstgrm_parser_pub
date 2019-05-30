@@ -1,6 +1,14 @@
 {
+  "name": "vlsv/nstgrm_parser",
+  "description": "Collects and saves public information about the accounts of selected instagram users.",
   "require": {
+    "php": "^7.0",
     "guzzlehttp/guzzle": "~6.0",
     "imangazaliev/didom": "^1.14"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "App/"
+    }
   }
 }

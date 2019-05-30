@@ -35,9 +35,7 @@ class Console extends Controller
         if ($service->tableExists($service->config['db']['tablesprefix'] . 'tracked')) {
 
             if (isset($options['u'])) {
-
                 $service->updateService();
-
             }
 
             if (isset($options['i'])) {

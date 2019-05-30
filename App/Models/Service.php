@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Views\View;
 use DiDom\Document;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
@@ -31,23 +32,37 @@ class Service
         4 => 'BOOL',
     ];
     public const ELEMENTS = [
-        'id'                           => 1,
-        'full_name'                    => 2,
-        'biography'                    => 2,
-        'external_url'                 => 2,
-        'profile_pic_url_hd'           => 2,
-        'business_category_name'       => 2,
-        'edge_followed_by'             => 3,
-        'edge_follow'                  => 3,
-        'edge_owner_to_timeline_media' => 3,
-        'edge_felix_video_timeline'    => 3,
-        'highlight_reel_count'         => 3,
-        'is_business_account'          => 4,
-        'is_private'                   => 4,
-        'is_verified'                  => 4,
-        'is_joined_recently'           => 4,
-        'has_channel'                  => 4,
-        'has_blocked_viewer'           => 4,
+        'id'                           => [1, 'identifier'],
+        'full_name'                    => [2, 'full name'],
+        'biography'                    => [2, 'description'],
+        'external_url'                 => [2, 'external url'],
+        'profile_pic_url_hd'           => [2, 'avatar'],
+        'business_category_name'       => [2, 'business category:'],
+        'edge_followed_by'             => [3, 'followers'],
+        'edge_follow'                  => [3, 'followed'],
+        'edge_owner_to_timeline_media' => [3, 'posts'],
+        'edge_felix_video_timeline'    => [3, 'video timeline'],
+        'highlight_reel_count'         => [3, 'highlight reel count'],
+        'is_business_account'          => [4, 'business account marker'],
+        'is_private'                   => [4, 'privacy marker'],
+        'is_verified'                  => [4, 'verification marker'],
+        'is_joined_recently'           => [4, 'recent account marker'],
+        'has_channel'                  => [4, 'has channel'],
+        'has_blocked_viewer'           => [4, 'has blocked viewer'],
+    ];
+    public const MESSAGES = [
+        'user'  => [
+            'added'         => 'was added',
+            'delete'          => 'was delete',
+            'returned'        => 'was returned',
+            'exist'           => 'already exist',
+            'not exist'       => 'not exist in service',
+            'nothing changed' => 'nothing was changed',
+        ],
+        'table' => [
+            'exist'   => 'already exist',
+            'created' => 'was created',
+        ],
     ];
 
     /**
@@ -100,7 +115,7 @@ class Service
             $meta['response'] = [
                 'code'   => 504,
                 'reason' => $e->getMessage(),
-                'print' => 'Can`t take data from instagram.',
+                'message'  => 'Can`t take data from instagram.',
             ];
         }
 
@@ -184,9 +199,9 @@ class Service
                         PRIMARY KEY (usersn)
                     )';
                 $pdo->exec($sql);
-                $report[$prefix . 'tracked'] = 'Was created';
+                $report[$prefix . 'tracked'] = self::MESSAGES['table']['created'];
             } else {
-                $report[$prefix . 'tracked'] = 'Already exist';
+                $report[$prefix . 'tracked'] = self::MESSAGES['table']['exist'];
             }
 
             foreach ($elements as $element => $type) {
@@ -195,15 +210,15 @@ class Service
                         (
                             sn SERIAL,
                             usersn BIGINT UNSIGNED NOT NULL,
-                            ' . $element . ' ' . $types[$type] . ',
+                            ' . $element . ' ' . $types[$type[0]] . ',
                             update_time TIMESTAMP,
                             FOREIGN KEY (usersn) REFERENCES ' . $prefix . 'tracked (usersn)
                             ON DELETE CASCADE
                         )';
                     $pdo->exec($sql);
-                    $report[$prefix . $element] = 'Was created';
+                    $report[$prefix . $element] = self::MESSAGES['table']['created'];
                 } else {
-                    $report[$prefix . $element] = 'Already exist';
+                    $report[$prefix . $element] = self::MESSAGES['table']['exist'];
                 }
             }
 
@@ -253,7 +268,7 @@ class Service
         } elseif ($meta['is_delete'] == 1) {
             $meta = $this->updateUserIntoService($user, ['is_delete' => 0])->getMeta();
         } else {
-            $meta['response']['print'] = 'Already exist in service!';
+            $meta['response']['message'] = self::MESSAGES['user']['exist'];
         }
 
         $user->setMeta($meta);
@@ -272,7 +287,7 @@ class Service
         if ($user->usersn !== null) {
             $user = $this->getUserDataFromUser_tables($user);
         } else {
-            $meta['response']['print'] = 'Not exist in service!';
+            $meta['response']['message'] = self::MESSAGES['user']['not exist'];
             $user->addMeta($meta);
         }
 
@@ -287,8 +302,10 @@ class Service
         $usersTracked = $this->getListUsersTracked();
 
         foreach ($usersTracked as $user) {
-            $meta = $this->updateUserData($user)->getMeta();
-            print_r($meta['response']);
+            $this->updateUserData($user);
+
+            $view = new View();
+            $view('Info_user', $user);
             sleep($this->config['instagram']['time_to_sleep']);
         }
     }
@@ -311,19 +328,19 @@ class Service
                 if ($meta[$field] == 0 && $value == 1) {
                     $sth = $this->updateBoolFieldIntoUsers_tracked($meta['username'], $field, 1);
                     $meta['response']['set'][$field] = 1;
-                    $meta['response']['print'] = 'Was delete! (set is_delete = true)';
+                    $meta['response']['message'] = self::MESSAGES['user']['delete'];
                 } elseif ($meta[$field] == 1 && $value == 0) {
                     $sth = $this->updateBoolFieldIntoUsers_tracked($meta['username'], $field, 0);
                     $meta['response']['set'][$field] = 0;
-                    $meta['response']['print'] = 'Was returned! (set is_delete = false)';
+                    $meta['response']['message'] = self::MESSAGES['user']['returned'];
                 } else {
-                    $meta['response']['print'] = 'Nothing changed!';
+                    $meta['response']['message'] = self::MESSAGES['user']['nothing changed'];
                 }
 
                 $meta['response']['pdo'][$field] = $sth;
             }
         } else {
-            $meta['response']['print'] = 'Not exist in service!';
+            $meta['response']['message'] = self::MESSAGES['user']['not exist'];
         }
 
         $user->setMeta($meta);
@@ -387,7 +404,7 @@ class Service
         $sth = $sth->execute([':username' => $meta['username']]);
         $meta['response']['pdo'] = $sth;
         $meta['usersn'] = $this->pdo->lastInsertId('usersn');
-        $meta['response']['print'] = 'Was added!';
+        $meta['response']['message'] = self::MESSAGES['user']['added'];
 
         $user->addMeta($meta);
         return $user;
@@ -452,21 +469,21 @@ class Service
      */
     protected function updateUserData(User $user): User
     {
-        $meta = $userFromInstagram = $this->getUserDataFromInstagram($user)->getMeta();
-        $userFromService = $this->getUserDataFromService($user)->getMeta();
+        $meta = $userMetaFromInstagram = $this->getUserDataFromInstagram($user)->getMeta();
+        $userMetaFromService = $this->getUserDataFromService($user)->getMeta();
 
         $elements = self::ELEMENTS;
         $userD = $userI = [];
 
         foreach (array_keys($elements) as $element) {
-            foreach ($userFromInstagram as $key => $value) {
+            foreach ($userMetaFromInstagram as $key => $value) {
                 if ($element === $key) {
                     $userI[$key] = $value;
                 }
             }
-            foreach ($userFromService as $key => $value) {
+            foreach ($userMetaFromService as $key => $value) {
                 if ($element === $key) {
-                    if ($elements[$element] === 4) {
+                    if ($elements[$element][0] === 4) {
                         $userD[$key] = (bool)$value;
                     } else {
                         $userD[$key] = $value;
