@@ -47,7 +47,8 @@ class Console extends Controller
 
             if (isset($options['b'])) {
                 $user = new Models\User($options['b']);
-                $service->getUserDataFromService($user);
+//                $service->getUserDataFromService($user);
+                $service->updateUserData($user);
 
                 $view('Info_user', $user);
             }

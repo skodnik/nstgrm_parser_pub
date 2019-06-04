@@ -4,9 +4,19 @@
  * @var $meta
  */
 $user = $data;
+
+$deo = $user->response['diff']['diff']['edge_owner_to_timeline_media'] ?? null;
+$defb = $user->response['diff']['diff']['edge_followed_by'] ?? null;
+$def = $user->response['diff']['diff']['edge_follow'] ?? null;
+
 ?>
+
+///////////////////////////////////
+<?php echo $user->username . ' (' . $user->id . ')' . PHP_EOL; ?>
+///////////////////////////////////
+
 -----------------------------------
-Public info
+Public information
 -----------------------------------
 Full name:          <?php echo $user->full_name . PHP_EOL; ?>
 Description:        <?php echo $user->biography . PHP_EOL; ?>
@@ -29,9 +39,9 @@ Instagram url:      <?php echo 'https://instagram.com/' . $user->username . PHP_
 -----------------------------------
 Countable
 -----------------------------------
-Posts:              <?php echo $user->edge_owner_to_timeline_media . PHP_EOL; ?>
-Followers:          <?php echo $user->edge_followed_by . PHP_EOL; ?>
-Following:          <?php echo $user->edge_follow . PHP_EOL; ?>
+Posts:              <?php echo $user->edge_owner_to_timeline_media . ' ' . $deo . PHP_EOL; ?>
+Followers:          <?php echo $user->edge_followed_by . ' ' . $defb . PHP_EOL; ?>
+Following:          <?php echo $user->edge_follow . ' ' . $def . PHP_EOL; ?>
 
 -----------------------------------
 Metadata

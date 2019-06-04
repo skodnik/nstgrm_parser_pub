@@ -32,11 +32,11 @@ class Service
         4 => 'BOOL',
     ];
     public const ELEMENTS = [
-        'id'                           => [1, 'identifier'],
+        'id'                           => [1, 'instagram id'],
         'full_name'                    => [2, 'full name'],
         'biography'                    => [2, 'description'],
         'external_url'                 => [2, 'external url'],
-        'profile_pic_url_hd'           => [2, 'avatar'],
+        'profile_pic_url_hd'           => [2, 'user picture'],
         'business_category_name'       => [2, 'business category:'],
         'edge_followed_by'             => [3, 'followers'],
         'edge_follow'                  => [3, 'followed'],
@@ -51,17 +51,20 @@ class Service
         'has_blocked_viewer'           => [4, 'has blocked viewer'],
     ];
     public const MESSAGES = [
-        'user'  => [
-            'added'         => 'was added',
+        'user'      => [
+            'added'           => 'was added',
             'delete'          => 'was delete',
             'returned'        => 'was returned',
             'exist'           => 'already exist',
             'not exist'       => 'not exist in service',
             'nothing changed' => 'nothing was changed',
         ],
-        'table' => [
+        'table'     => [
             'exist'   => 'already exist',
             'created' => 'was created',
+        ],
+        'exception' => [
+            'can`t' => 'Can`t take data from Instagram.',
         ],
     ];
 
@@ -113,9 +116,9 @@ class Service
             ];
         } catch (RequestException $e) {
             $meta['response'] = [
-                'code'   => 504,
-                'reason' => $e->getMessage(),
-                'message'  => 'Can`t take data from instagram.',
+                'code'    => 504,
+                'reason'  => $e->getMessage(),
+                'message' => self::MESSAGES['exception']['can`t'],
             ];
         }
 
@@ -467,7 +470,7 @@ class Service
      * @return User
      * @throws GuzzleException
      */
-    protected function updateUserData(User $user): User
+    public function updateUserData(User $user): User
     {
         $meta = $userMetaFromInstagram = $this->getUserDataFromInstagram($user)->getMeta();
         $userMetaFromService = $this->getUserDataFromService($user)->getMeta();
